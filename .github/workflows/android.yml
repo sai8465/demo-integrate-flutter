@@ -1,27 +1,36 @@
-name: Android CI
-
+name: android Build
 on:
   push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
+    branches:
+      - master
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: set up JDK 11
-      uses: actions/setup-java@v3
-      with:
-        java-version: '11'
-        distribution: 'temurin'
-        cache: gradle
-
-    - name: Grant execute permission for gradlew and Build with Gradle
-      run: |
-         cd android
-         chmod +x gradlew
-         ./gradlew build
+      - uses: actions/checkout@v2
+      - uses: actions/setup-java@v3
+        with:
+          distribution: "zulu"
+          java-version: "12.x"
+          cache: "gradle"
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.7.12"
+          channel: "stable"
+      - run: flutter --version
+      - uses: android-actions/setup-android@v2
+      - run: sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev -y
+      - name: build flutter android
+        working-directory: ./android
+        run: |
+          flutter clean
+          flutter doctor
+          flutter pub get
+          flutter build apk --split-per-abi
+      # - name: Upload Artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: app-release
+      #     path: build/app/outputs/flutter-apk/ 
+      
